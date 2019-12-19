@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>JS VUE CHRISTMAS TIMER FUN PAGE</title>
+
+    
+    <link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="./index.js"></script>
+    
+    <link rel="stylesheet" href="./styles.css">
+
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div id="clock">
+        <p class="date">{{ date }}</p>
+        <p class="time">{{ time }}</p>
+    </div>
+
+    <div class="plant">
+            <img src="./images/plant.png" alt="">
+    </div>
+
+    <div class="tnalp">
+            <img src="./images/tnalp.png" alt="">
+    </div>
+
+    <div id="timer" class="timer">
+
+            <div class="tree">
+                    <img src="./images/tree.png"  alt="">
+            </div>
+            
+            <div class="presents">
+                    <img src="./images/presents.png" alt="">
+            </div>
+
+        
+
+                <input class="button_one" type="image" src="./images/ornament-md-1.png" onclick="play()" />
+           
+            
+                <input class="button_two" type="image" src="./images/ornament-md-2.png" onclick="pause()" />
+ 
+
+          <Timer 
+                 starttime="Dec 19, 2019 10:00:00" 
+                 endtime="Dec 24, 2019 23:59:00" 
+                 trans='{  
+                 "day":"Days",
+                 "hours":"Hours",
+                 "minutes":"Minutes",
+                 "seconds":"Seconds",
+                 "expired":"Event has been expired.",
+                 "running":"",
+                 "upcoming":"Till start of event.",
+                 "status": {
+                    "expired":"Expired",
+                    "running":"",
+                    "upcoming":"Future"
+                   }}'
+                 ></Timer>
+        </div>
+
+    <audio id="music" ontimeupdate="updateTime()" audio.controls = false; >
+        <source src="./songs.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+      
+   
+
+
+    <script>
+        (function() {
+    var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame ||
+    function(callback) {
+        window.setTimeout(callback, 1000 / 60);
+    };
+    window.requestAnimationFrame = requestAnimationFrame;
+})();
+var flakes = [],
+    canvas = document.getElementById("canvas"),
+    ctx = canvas.getContext("2d"),
+    flakeCount = 400,
+    mX = -100,
+    mY = -100
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+function snow() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (var i = 0; i < flakeCount; i++) {
+        var flake = flakes[i],
+            x = mX,
+            y = mY,
+            minDist = 150,
+            x2 = flake.x,
+            y2 = flake.y;
+        var dist = Math.sqrt((x2 - x) * (x2 - x) + (y2 - y) * (y2 - y)),
+            dx = x2 - x,
+            dy = y2 - y;
+        if (dist < minDist) {
+            var force = minDist / (dist * dist),
+                xcomp = (x - x2) / dist,
+                ycomp = (y - y2) / dist,
+                deltaV = force / 2;
+            flake.velX -= deltaV * xcomp;
+            flake.velY -= deltaV * ycomp;
+        } else {
+            flake.velX *= .98;
+            if (flake.velY <= flake.speed) {
+                flake.velY = flake.speed
+            }
+            flake.velX += Math.cos(flake.step += .05) * flake.stepSize;
+        }
+        ctx.fillStyle = "rgba(255,255,255," + flake.opacity + ")";
+        flake.y += flake.velY;
+        flake.x += flake.velX;
+            
+        if (flake.y >= canvas.height || flake.y <= 0) {
+            reset(flake);
+        }
+        if (flake.x >= canvas.width || flake.x <= 0) {
+            reset(flake);
+        }
+        ctx.beginPath();
+        ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    requestAnimationFrame(snow);
+};
+function reset(flake) {
+    flake.x = Math.floor(Math.random() * canvas.width);
+    flake.y = 0;
+    flake.size = (Math.random() * 3) + 2;
+    flake.speed = (Math.random() * 1) + 0.5;
+    flake.velY = flake.speed;
+    flake.velX = 0;
+    flake.opacity = (Math.random() * 0.5) + 0.3;
+}
+function init() {
+    for (var i = 0; i < flakeCount; i++) {
+        var x = Math.floor(Math.random() * canvas.width),
+            y = Math.floor(Math.random() * canvas.height),
+            size = (Math.random() * 3) + 2,
+            speed = (Math.random() * 1) + 0.5,
+            opacity = (Math.random() * 0.5) + 0.3;
+        flakes.push({
+            speed: speed,
+            velY: speed,
+            velX: 0,
+            x: x,
+            y: y,
+            size: size,
+            stepSize: (Math.random()) / 30,
+            step: 0,
+            opacity: opacity
+        });
+    }
+    snow();
+};
+canvas.addEventListener("mousemove", function(e) {
+    mX = e.clientX,
+    mY = e.clientY
+});
+window.addEventListener("resize",function(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+})
+init();
+    var clock = new Vue({
+            el: '#clock',
+            data: {
+                time: '',
+                date: ''
+            }
+        });
+        var week = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+        var timerID = setInterval(updateTime, 1000);
+        updateTime();
+        function updateTime() {
+            var cd = new Date();
+            clock.time = zeroPadding(cd.getHours(), 2) + ':' + zeroPadding(cd.getMinutes(), 2) + ':' + zeroPadding(cd.getSeconds(), 2);
+            clock.date = zeroPadding(cd.getFullYear(), 4) + '-' + zeroPadding(cd.getMonth()+1, 2) + '-' + zeroPadding(cd.getDate(), 2) + ' ' + week[cd.getDay()];
+        };
+        function zeroPadding(num, digit) {
+            var zero = '';
+            for(var i = 0; i < digit; i++) {
+                zero += '0';
+            }
+            return (zero + num).slice(-digit);
+        }
+    Vue.component('Timer',{
+        template: `
+        <div>
+        <div v-show ="statusType !== 'expired'">
+            <div class="day">
+            <span class="number">{{ days }}</span>
+            <div class="format">{{ wordString.day }}</div>
+            </div>
+            <div class="hour">
+            <span class="number">{{ hours }}</span>
+            <div class="format">{{ wordString.hours }}</div>
+            </div>
+            <div class="min">
+            <span class="number">{{ minutes }}</span>
+            <div class="format">{{ wordString.minutes }}</div>
+            </div>
+            <div class="sec">
+            <span class="number">{{ seconds }}</span>
+            <div class="format">{{ wordString.seconds }}</div>
+            </div>
+        </div>
+        <div class="message">{{ message }}</div>
+        <div class="status-tag" :class="statusType">{{ statusText }}</div>
+        </div>
+    `,
+    props: ['starttime','endtime','trans'] ,
+    data: function(){
+        return{
+            timer:"",
+        wordString: {},
+        start: "",
+        end: "",
+        interval: "",
+        days:"",
+        minutes:"",
+        hours:"",
+        seconds:"",
+        message:"",
+        statusType:"",
+        statusText: "",
+        
+        };
+    },
+    created: function () {
+            this.wordString = JSON.parse(this.trans);
+        },
+    mounted(){
+        this.start = new Date(this.starttime).getTime();
+        this.end = new Date(this.endtime).getTime();
+        this.timerCount(this.start,this.end);
+        this.interval = setInterval(() => {
+            this.timerCount(this.start,this.end);
+        }, 1000);
+    },
+  methods: {
+    timerCount: function(start,end){
+        var now = new Date().getTime();
+        var distance = start - now;
+        var passTime =  end - now;
+        if(distance < 0 && passTime < 0){
+            this.message = this.wordString.expired;
+            this.statusType = "expired";
+            this.statusText = this.wordString.status.expired;
+            clearInterval(this.interval);
+            return;
+        }else if(distance < 0 && passTime > 0){
+            this.calcTime(passTime);
+            this.message = this.wordString.running;
+            this.statusType = "running";
+            this.statusText = this.wordString.status.running;
+        } else if( distance > 0 && passTime > 0 ){
+            this.calcTime(distance); 
+            this.message = this.wordString.upcoming;
+            this.statusType = "upcoming";
+            this.statusText = this.wordString.status.upcoming;
+        }
+    },
+    calcTime: function(dist){
+        this.days = Math.floor(dist / (1000 * 60 * 60 * 24));
+        this.hours = Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        this.minutes = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
+        this.seconds = Math.floor((dist % (1000 * 60)) / 1000);
+    }
+    
+  }
+});
+    new Vue({
+    el: "#timer",
+    });
+    var myMusic= document.getElementById("music");
+    function play() {
+    myMusic.play();
+    }
+    function pause() {
+    myMusic.pause();
+    }   
+    </script>
+</body>
+</html>
